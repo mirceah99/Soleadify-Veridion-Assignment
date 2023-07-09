@@ -1,14 +1,13 @@
 import Fetcher from "./fetcherDefinition";
 import axiosFetcher from "./fetcherImplementationAxios";
-import * as fs from "fs";
 import regexPresets from "./regex";
 import config from "./config";
-import { removeDuplicates } from "./utils";
-
-interface Page {
+import { SOCIAL_MEDIA_SIGNATURES, removeDuplicates } from "./utils";
+import { Page } from "puppeteer";
+import fs from "fs";
+interface HtmlPage {
   url: string;
   verified: boolean;
-  content: string | null;
 }
 interface Statistics {
   sitesProcessed: number;
@@ -23,28 +22,52 @@ export const STATISTICS: Statistics = {
 };
 
 export default class DataExtractor {
-  private pages: Page[];
+  private pages: HtmlPage[];
   private fetcher: Fetcher;
   private mainUrl: string;
   private mainUrlWithoutProtocol: string;
-  constructor(mainUrl: string, fetcher?: Fetcher) {
+  private browserTab: Page;
+  private phoneNumbers: string[];
+  private socialMediaLinks: string[];
+  constructor(mainUrl: string, browserTab: Page, fetcher?: Fetcher) {
     this.fetcher = fetcher || axiosFetcher;
+    this.browserTab = browserTab;
     this.mainUrl = `https://${mainUrl}`;
     this.mainUrlWithoutProtocol = mainUrl;
     this.pages = [];
-    this.pages.push({ url: mainUrl, verified: false, content: null });
+    this.pages.push({ url: mainUrl, verified: false });
+    this.phoneNumbers = [];
+    this.socialMediaLinks = [];
   }
   async processWebsite() {
     try {
-      const firstPage = await this.fetcher.get(this.mainUrl);
-      fs.writeFileSync("./result3.html", firstPage);
-      const otherWebsites = this.findOtherPagesInPageContent(firstPage);
+      await this.loadPageInTab();
+      const otherWebsites = this.findOtherPagesInPageContent(
+        await this.getPageRowHTML()
+      );
       this.addPages(otherWebsites);
+      await this.searchForPhoneNumbers();
+      await this.searchForSocialMediaLinks();
+      this.clearData();
       STATISTICS.sitesProcessed++;
-      console.log(`${this.pages.length} - ${this.mainUrl}`);
+      (this.phoneNumbers.length || this.socialMediaLinks.length) &&
+        console.log(
+          `${this.mainUrl}  
+        social: ${this.socialMediaLinks}  
+        phone: ${this.phoneNumbers}`
+        );
+      fs.appendFile(
+        "./first-100-09.07.2023",
+        `${this.mainUrl}  
+      social: ${this.socialMediaLinks}  
+      phone: ${this.phoneNumbers}
+`,
+        () => {}
+      );
       if (this.pages.length < config.numberOfSubpages)
         STATISTICS.sitesWithInsufficientPages.push(this.mainUrlWithoutProtocol);
     } catch (e) {
+      //   console.log(e);
       STATISTICS.failed.push(this.mainUrl);
     }
   }
@@ -61,11 +84,43 @@ export default class DataExtractor {
   }
   addPages(urls: string[]) {
     for (const url in urls) {
-      if (!this.getPage(url))
-        this.pages.push({ url, content: null, verified: false });
+      if (!this.getPage(url)) this.pages.push({ url, verified: false });
     }
   }
-  getPage(url: string): Page | null {
+  getPage(url: string): HtmlPage | null {
     return this.pages.find((element) => element.url === url) || null;
+  }
+  async loadPageInTab(url?: string) {
+    await this.browserTab.goto(url || this.mainUrl, {
+      waitUntil: "networkidle2",
+    }); // kinda document.ready (waits to be no more than 2 network connections for at least 500 ms.)
+  }
+  async getPageRowHTML() {
+    return this.browserTab.evaluate(() => {
+      return document.querySelector("html")?.outerHTML || "";
+    });
+  }
+  async searchForSocialMediaLinks() {
+    const rowHtml = await this.getPageRowHTML();
+    const allUrls = rowHtml.match(regexPresets.url) || [];
+    for (const url of allUrls) {
+      for (const socialMedia of SOCIAL_MEDIA_SIGNATURES) {
+        if (url.includes(socialMedia)) {
+          this.socialMediaLinks.push(url);
+          break;
+        }
+      }
+    }
+  }
+  async searchForPhoneNumbers() {
+    const rowHtml = await this.getPageRowHTML();
+    for (const reg of regexPresets.phoneNumber) {
+      const matches = rowHtml.match(reg) || [];
+      this.phoneNumbers.push(...matches);
+    }
+  }
+  clearData() {
+    this.phoneNumbers = removeDuplicates(this.phoneNumbers);
+    this.socialMediaLinks = removeDuplicates(this.socialMediaLinks);
   }
 }
