@@ -1,0 +1,20 @@
+{
+  "name": "soleadify-veridion-assignment",
+  "version": "1.0.0",
+  "description": "Some good code.",
+  "main": "echo \"Error: no main specified\" && exit 1",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start-data-executor": "node ./out/data-extractor/app.js"
+  },
+  "author": "Mircea Hanghiuc",
+  "license": "ISC",
+  "gitRepo": "https://github.com/mirceah99/Soleadify-Veridion-Assignment",
+  "devDependencies": {
+    "@types/node": "^20.4.1",
+    "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "axios": "^1.4.0"
+  }
+}
