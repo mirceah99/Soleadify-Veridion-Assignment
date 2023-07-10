@@ -10,12 +10,14 @@ interface HtmlPage {
   verified: boolean;
 }
 interface Statistics {
+  siteNumber: number;
   sitesProcessed: number;
   sitesWithInsufficientPages: string[];
   failed: string[];
 }
 
 export const STATISTICS: Statistics = {
+  siteNumber: 0,
   sitesProcessed: 0,
   sitesWithInsufficientPages: [],
   failed: [],
@@ -38,6 +40,7 @@ export default class DataExtractor {
     this.pages.push({ url: mainUrl, verified: false });
     this.phoneNumbers = [];
     this.socialMediaLinks = [];
+    console.log(`site number: ${STATISTICS.siteNumber++}`);
   }
   async processWebsite() {
     try {
@@ -50,24 +53,24 @@ export default class DataExtractor {
       await this.searchForSocialMediaLinks();
       this.clearData();
       STATISTICS.sitesProcessed++;
-      (this.phoneNumbers.length || this.socialMediaLinks.length) &&
-        console.log(
-          `${this.mainUrl}  
-        social: ${this.socialMediaLinks}  
-        phone: ${this.phoneNumbers}`
-        );
-      fs.appendFile(
-        "./first-100-09.07.2023",
-        `${this.mainUrl}  
-      social: ${this.socialMediaLinks}  
-      phone: ${this.phoneNumbers}
-`,
-        () => {}
-      );
+      //   (this.phoneNumbers.length || this.socialMediaLinks.length) &&
+      //     console.log(
+      //       `${this.mainUrl}
+      //     social: ${this.socialMediaLinks}
+      //     phone: ${this.phoneNumbers}`
+      //     );
+      //       fs.appendFile(
+      //         "./first-100-09.07.2023",
+      //         `${this.mainUrl}
+      //       social: ${this.socialMediaLinks}
+      //       phone: ${this.phoneNumbers}
+      // `,
+      //         () => {}
+      //       );
       if (this.pages.length < config.numberOfSubpages)
         STATISTICS.sitesWithInsufficientPages.push(this.mainUrlWithoutProtocol);
     } catch (e) {
-      //   console.log(e);
+      // console.log(e);
       STATISTICS.failed.push(this.mainUrl);
     }
   }
