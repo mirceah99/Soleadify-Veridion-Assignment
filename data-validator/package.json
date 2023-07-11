@@ -15,6 +15,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "@nestjs/cli": "^10.1.8",
     "axios": "^1.4.0",
     "puppeteer": "^20.8.0"
   }
