@@ -1,16 +1,18 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { CompanyService } from './company.service';
+import UpdateCreateCompanyDto from './dto/update-create-company.dto';
+import SearchCompanyDto from './dto/search-company.dto';
 
 @Controller('company')
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
   @Get()
-  getCompanies() {
-    return this.companyService.getCompany();
+  getCompanies(@Query() query: SearchCompanyDto) {
+    return this.companyService.getCompanies(query);
   }
   @Post()
-  setCompany() {
-    return this.companyService.setCompany();
+  setCompany(@Body() body: UpdateCreateCompanyDto) {
+    return this.companyService.setCompany(body);
   }
 }
