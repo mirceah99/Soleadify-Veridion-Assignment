@@ -3,6 +3,7 @@ import DataExtractor, { STATISTICS } from "./dataExtractor";
 import { getWebsiteDomains } from "./utils";
 import puppeteer, { Browser } from "puppeteer";
 import fs from "fs";
+import axios from "axios";
 (async () => {
   const startTime = performance.now();
   const browser = await puppeteer.launch({
@@ -20,7 +21,7 @@ import fs from "fs";
     `processed: ${STATISTICS.sitesProcessed} fails: ${STATISTICS.failed.length}`
   );
   // console.dir(STATISTICS.failed);
-  fs.writeFileSync("./fails.html", JSON.stringify(STATISTICS.failed));
+  // fs.writeFileSync("./fails.html", JSON.stringify(STATISTICS.failed));
   const endTime = performance.now();
   console.log(`i run in ${(endTime - startTime) / 1000} seconds`);
   await browser.close();
@@ -37,7 +38,7 @@ async function startExtractor(browser: Browser, site?: string) {
   let page;
   try {
     page = await browser.newPage();
-    await new DataExtractor(siteToProcess, page).processWebsite();
+    await new DataExtractor(siteToProcess, page, axios).processWebsite();
   } catch (e) {
     console.log(`error ocurred ..`);
     return;

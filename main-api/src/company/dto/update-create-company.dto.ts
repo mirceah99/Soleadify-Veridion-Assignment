@@ -1,4 +1,4 @@
-import { IsString, Length, IsArray } from 'class-validator';
+import { IsString, Length, IsArray, IsOptional } from 'class-validator';
 export default class UpdateCreateCompanyDto {
   @IsString()
   @Length(4, 255)
@@ -7,15 +7,18 @@ export default class UpdateCreateCompanyDto {
   @IsArray()
   @IsString({ each: true })
   @Length(4, 500, { each: true })
-  addresses: string[];
+  @IsOptional()
+  addresses?: string[];
+
+  @IsArray()
+  @IsOptional()
+  @IsString({ each: true })
+  @Length(4, 500, { each: true })
+  phoneNumbers?: string[];
 
   @IsArray()
   @IsString({ each: true })
   @Length(4, 500, { each: true })
-  phoneNumbers: string[];
-
-  @IsArray()
-  @IsString({ each: true })
-  @Length(4, 500, { each: true })
-  socialMediaLinks: string[];
+  @IsOptional()
+  socialMediaLinks?: string[];
 }

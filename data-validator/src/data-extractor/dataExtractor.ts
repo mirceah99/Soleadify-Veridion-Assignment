@@ -1,10 +1,8 @@
-import Fetcher from "./fetcherDefinition";
-import axiosFetcher from "./fetcherImplementationAxios";
 import regexPresets from "./regex";
 import config from "./config";
 import { SOCIAL_MEDIA_SIGNATURES, removeDuplicates } from "./utils";
 import { Page } from "puppeteer";
-import fs from "fs";
+import { AxiosStatic } from "axios";
 interface HtmlPage {
   url: string;
   verified: boolean;
@@ -25,14 +23,14 @@ export const STATISTICS: Statistics = {
 
 export default class DataExtractor {
   private pages: HtmlPage[];
-  private fetcher: Fetcher;
+  private httpService: AxiosStatic;
   private mainUrl: string;
   private mainUrlWithoutProtocol: string;
   private browserTab: Page;
   private phoneNumbers: string[];
   private socialMediaLinks: string[];
-  constructor(mainUrl: string, browserTab: Page, fetcher?: Fetcher) {
-    this.fetcher = fetcher || axiosFetcher;
+  constructor(mainUrl: string, browserTab: Page, httpService: AxiosStatic) {
+    this.httpService = httpService;
     this.browserTab = browserTab;
     this.mainUrl = `https://${mainUrl}`;
     this.mainUrlWithoutProtocol = mainUrl;
@@ -51,22 +49,11 @@ export default class DataExtractor {
       this.addPages(otherWebsites);
       await this.searchForPhoneNumbers();
       await this.searchForSocialMediaLinks();
-      this.clearData();
+      this.removeDuplicates();
+      const status = await this.saveDataToMainAPI();
+      console.log(status);
       STATISTICS.sitesProcessed++;
-      //   (this.phoneNumbers.length || this.socialMediaLinks.length) &&
-      //     console.log(
-      //       `${this.mainUrl}
-      //     social: ${this.socialMediaLinks}
-      //     phone: ${this.phoneNumbers}`
-      //     );
-      //       fs.appendFile(
-      //         "./first-100-09.07.2023",
-      //         `${this.mainUrl}
-      //       social: ${this.socialMediaLinks}
-      //       phone: ${this.phoneNumbers}
-      // `,
-      //         () => {}
-      //       );
+
       if (this.pages.length < config.numberOfSubpages)
         STATISTICS.sitesWithInsufficientPages.push(this.mainUrlWithoutProtocol);
     } catch (e) {
@@ -122,8 +109,19 @@ export default class DataExtractor {
       this.phoneNumbers.push(...matches);
     }
   }
-  clearData() {
+  removeDuplicates() {
     this.phoneNumbers = removeDuplicates(this.phoneNumbers);
     this.socialMediaLinks = removeDuplicates(this.socialMediaLinks);
+  }
+  async saveDataToMainAPI() {
+    const updateData = {
+      domain: this.mainUrlWithoutProtocol,
+      socialMediaLinks:
+        this.socialMediaLinks.length > 0 ? this.socialMediaLinks : undefined,
+      phoneNumbers:
+        this.phoneNumbers.length > 0 ? this.phoneNumbers : undefined,
+    };
+    return (await this.httpService.post(config.postDataApiFullURI, updateData))
+      .status;
   }
 }
