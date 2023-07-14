@@ -8,13 +8,12 @@ import { Company } from './company.model';
 export class CompanyService {
   constructor(private readonly companyRepository: CompanyRepository) {}
 
-  setCompany(company: UpdateCreateCompanyDto) {
+  upsertCompany(company: UpdateCreateCompanyDto) {
     // check for duplicates phone numbers or etc
     // merge with already existent ones ?? feature or bug
-    return this.companyRepository.setCompany(company);
+    return this.companyRepository.upsertCompany(company);
   }
-  getCompanies(query: SearchCompanyDto): Company[] {
+  async getCompanies(query: SearchCompanyDto) {
     return this.companyRepository.getCompanies(query);
   }
-  formatCompanies();
 }
