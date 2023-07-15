@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config
+data:
+  elastic-url: https://host.minikube.internal:9200
+  elastic-password: fvosX6Qlp-UcL0CmoTEZ
+  elastic-username: elastic
+  main-api-url: http://main-api:3000/company
+  NODE_TLS_REJECT_UNAUTHORIZED: "0"

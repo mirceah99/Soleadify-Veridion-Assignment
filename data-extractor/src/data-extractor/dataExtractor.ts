@@ -50,6 +50,7 @@ export default class DataExtractor {
       await this.searchForPhoneNumbers();
       await this.searchForSocialMediaLinks();
       this.removeDuplicates();
+      console.log(`start saving data using external API`);
       const status = await this.saveDataToMainAPI();
       console.log(status);
       STATISTICS.sitesProcessed++;
@@ -57,7 +58,7 @@ export default class DataExtractor {
       if (this.pages.length < config.numberOfSubpages)
         STATISTICS.sitesWithInsufficientPages.push(this.mainUrlWithoutProtocol);
     } catch (e) {
-      // console.log(e);
+      console.log(e);
       STATISTICS.failed.push(this.mainUrl);
     }
   }

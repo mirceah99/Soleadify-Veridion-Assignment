@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: data-extractor-job
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: data-extractor
+          image: mirceah99/soleadify-data-extractor:v1.0.13
+          env:
+            - name: MAIN_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: main-api-url
+  backoffLimit: 0

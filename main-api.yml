@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: main-api-deployment
+  labels:
+    app: main-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: main-api
+  template:
+    metadata:
+      labels:
+        app: main-api
+    spec:
+      containers:
+        - name: main-api
+          image: mirceah99/soleadify-main-api:v1.0.6
+          env:
+            - name: ELASTIC_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: elastic-url
+            - name: ELASTIC_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: elastic-username
+            - name: ELASTIC_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: elastic-password
+            - name: NODE_TLS_REJECT_UNAUTHORIZED
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: NODE_TLS_REJECT_UNAUTHORIZED
+          ports:
+            - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: main-api
+spec:
+  type: NodePort
+  selector:
+    app: main-api
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      nodePort: 30101

@@ -1,15 +1,26 @@
+console.log(`DATA extractor starts running!`);
 import config from "./config";
 import DataExtractor, { STATISTICS } from "./dataExtractor";
 import { getWebsiteDomains } from "./utils";
 import puppeteer, { Browser } from "puppeteer";
-import fs from "fs";
 import axios from "axios";
+const additionalSettings = config.chromiumExecutablePath
+  ? {
+      executablePath: config.chromiumExecutablePath,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    }
+  : null;
+console.log(additionalSettings);
 (async () => {
   const startTime = performance.now();
   const browser = await puppeteer.launch({
     headless: "new",
     timeout: config.connectionTimeout,
+    ...additionalSettings,
   });
+  console.log(
+    `I will try to start ${config.concurrentExtractorsAsATime} processors`
+  );
   const sites = getWebsiteDomains(config.concurrentExtractorsAsATime);
 
   const arrayOfRunningExecutors = sites.map(async (site) =>
