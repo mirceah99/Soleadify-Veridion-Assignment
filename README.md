@@ -40,10 +40,13 @@ Step 4 run:
 
 ```
 kubectl get svc
-minikube service main-api-service
+minikube service main-api
 ```
 
-take the url and use it within the postman collection to call the API
+Copy url and open: /statistics
+http://127.0.0.1:63655/statistics
+
+Or take the url and use it within the postman collection to call the API
 
 Other util commands:
 
