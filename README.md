@@ -7,7 +7,7 @@ https://mirceas-ideas.gitbook.io/soleadify-veridion-assignment/
 
 How to start the app:
 
-Step 0 First you want to run elastic on your local nev:
+Step 0 First you want to run elastic on your local env:
 
 ```
 docker network create elastic
@@ -25,7 +25,9 @@ from the main folder run:
 ```
 kubectl apply -f .\config.yml  
 kubectl apply -f .\main-api.yml  
+```
 when main-api is running:
+```
 kubectl apply -f .\data-extractor-job.yml
 ```
 Step 4 run:
