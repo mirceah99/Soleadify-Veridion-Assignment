@@ -8,3 +8,6 @@ data:
   elastic-username: elastic
   main-api-url: http://main-api:3000/company
   NODE_TLS_REJECT_UNAUTHORIZED: "0"
+  POST_STATISTICS_FULL_URI: http://main-api:3000/statistics
+  CONCURRENT_EXTRACTORS_AS_A_TIME: "5"
+  MAX_NUMBER_OF_WEBSITES_TO_CHECK: "50"

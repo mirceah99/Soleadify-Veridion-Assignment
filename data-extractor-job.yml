@@ -8,11 +8,26 @@ spec:
       restartPolicy: Never
       containers:
         - name: data-extractor
-          image: mirceah99/soleadify-data-extractor:v1.0.13
+          image: mirceah99/soleadify-data-extractor:v1.0.14
           env:
             - name: MAIN_API_URL
               valueFrom:
                 configMapKeyRef:
                   name: config
                   key: main-api-url
+            - name: POST_STATISTICS_FULL_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: POST_STATISTICS_FULL_URI
+            - name: CONCURRENT_EXTRACTORS_AS_A_TIME
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: CONCURRENT_EXTRACTORS_AS_A_TIME
+            - name: MAX_NUMBER_OF_WEBSITES_TO_CHECK
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: MAX_NUMBER_OF_WEBSITES_TO_CHECK
   backoffLimit: 0
