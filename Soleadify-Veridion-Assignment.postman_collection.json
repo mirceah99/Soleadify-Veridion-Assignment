@@ -12,7 +12,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"domain\": \"mircea.com\",\r\n    \"addresses\": [\r\n        \"gradistea 10\"\r\n    ],\r\n    \"phoneNumbers\": [\r\n        \"123-123\"\r\n    ],\r\n    \"socialMediaLinks\": [ \"youtube.com\"]\r\n}",
+					"raw": "{\r\n    \"domain\": \"mircea.com+1\",\r\n    \"addresses\": [\r\n        \"gradistea 10\",\r\n        \"grad\"\r\n    ],\r\n    \"phoneNumber\": [\r\n       \"125431\"\r\n    ],\r\n    \"socialMediaLinks\": [ \"youtube.com\"],\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -58,6 +58,53 @@
 							"value": "123-123",
 							"disabled": true
 						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Save staistics",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"rawHtml\": \"<p>Salut!</p>\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/statistics",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"statistics"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get statistics",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/statistics",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"statistics"
 					]
 				}
 			},

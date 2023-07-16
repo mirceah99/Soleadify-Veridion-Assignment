@@ -9,12 +9,13 @@ export class CompanyRepository {
   constructor(private readonly elasticsearchService: ElasticsearchService) {}
   async getCompanies(query: SearchCompanyDto): Promise<Company[]> {
     if (Object.keys(query).length > 1) throw `Can query by just one attribute`;
-    const body = {
+    let body: any = {
       query: {
-        query_string: {
-          fields: [Object.keys(query)[0]],
-          query: `*${query[Object.keys(query)[0]]}*`, //TODO I have to improve this
-          escape: true,
+        fuzzy: {
+          [Object.keys(query)[0]]: {
+            value: query[Object.keys(query)[0]],
+            fuzziness: 2,
+          },
         },
       },
     };

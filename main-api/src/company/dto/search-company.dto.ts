@@ -8,5 +8,5 @@ export default class SearchCompanyDto {
   @IsString()
   @Length(4, 500)
   @IsOptional()
-  phoneNumber?: string;
+  phoneNumbers?: string;
 }

@@ -1,12 +1,16 @@
 import * as fs from "fs";
 import { join } from "path";
+import config from "./config";
 const PATH_TO_FILE = join(__dirname, "..", "..", "sample-websites.csv");
 
 let currentLine = 1; // line 0 is header
-const fileContent: string[] = fs
+let fileContent: string[] = fs
   .readFileSync(PATH_TO_FILE, "utf-8")
-  .split("\r\n")
-  .slice(0, 30); // maybe will be easier to use a cvs package or convert cvs to json
+  .split("\r\n");
+
+if (config.maxNumberOfWebsitesToCheck) {
+  fileContent = fileContent.splice(0, +config.maxNumberOfWebsitesToCheck);
+}
 
 export function getWebsiteDomains(numberOfDomains = 1) {
   return fileContent.slice(currentLine, (currentLine += numberOfDomains));

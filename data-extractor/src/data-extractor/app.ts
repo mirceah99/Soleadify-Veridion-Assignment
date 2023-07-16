@@ -1,9 +1,10 @@
 console.log(`DATA extractor starts running!`);
 import config from "./config";
-import DataExtractor, { STATISTICS } from "./dataExtractor";
+import DataExtractor from "./dataExtractor";
 import { getWebsiteDomains } from "./utils";
 import puppeteer, { Browser } from "puppeteer";
 import axios from "axios";
+import statisticsService from "./statistics";
 const additionalSettings = config.chromiumExecutablePath
   ? {
       executablePath: config.chromiumExecutablePath,
@@ -16,6 +17,7 @@ console.log(additionalSettings);
   const browser = await puppeteer.launch({
     headless: "new",
     timeout: config.connectionTimeout,
+    ignoreHTTPSErrors: true,
     ...additionalSettings,
   });
   console.log(
@@ -28,19 +30,12 @@ console.log(additionalSettings);
   );
   await Promise.all(arrayOfRunningExecutors);
 
-  console.log(
-    `processed: ${STATISTICS.sitesProcessed} fails: ${STATISTICS.failed.length}`
-  );
-  // console.dir(STATISTICS.failed);
-  // fs.writeFileSync("./fails.html", JSON.stringify(STATISTICS.failed));
   const endTime = performance.now();
   console.log(`i run in ${(endTime - startTime) / 1000} seconds`);
+  statisticsService.setTotalTime((endTime - startTime) / 1000);
+  // statisticsService.log();
+  await statisticsService.registerResult();
   await browser.close();
-  // while (true) {
-
-  //   dataExtractor.processWebsite(sites[0]);
-  //   break;
-  // }
 })();
 
 async function startExtractor(browser: Browser, site?: string) {
@@ -49,7 +44,12 @@ async function startExtractor(browser: Browser, site?: string) {
   let page;
   try {
     page = await browser.newPage();
-    await new DataExtractor(siteToProcess, page, axios).processWebsite();
+    await new DataExtractor(
+      siteToProcess,
+      page,
+      axios,
+      statisticsService
+    ).processWebsite();
   } catch (e) {
     console.log(`error ocurred ..`);
     return;

@@ -3,24 +3,12 @@ import config from "./config";
 import { SOCIAL_MEDIA_SIGNATURES, removeDuplicates } from "./utils";
 import { Page } from "puppeteer";
 import { AxiosStatic } from "axios";
+import { StatisticsService } from "./statistics";
 interface HtmlPage {
   url: string;
   verified: boolean;
 }
-interface Statistics {
-  siteNumber: number;
-  sitesProcessed: number;
-  sitesWithInsufficientPages: string[];
-  failed: string[];
-}
-
-export const STATISTICS: Statistics = {
-  siteNumber: 0,
-  sitesProcessed: 0,
-  sitesWithInsufficientPages: [],
-  failed: [],
-};
-
+let c = 0;
 export default class DataExtractor {
   private pages: HtmlPage[];
   private httpService: AxiosStatic;
@@ -29,7 +17,13 @@ export default class DataExtractor {
   private browserTab: Page;
   private phoneNumbers: string[];
   private socialMediaLinks: string[];
-  constructor(mainUrl: string, browserTab: Page, httpService: AxiosStatic) {
+  private statisticsService: StatisticsService;
+  constructor(
+    mainUrl: string,
+    browserTab: Page,
+    httpService: AxiosStatic,
+    statisticsService: StatisticsService
+  ) {
     this.httpService = httpService;
     this.browserTab = browserTab;
     this.mainUrl = `https://${mainUrl}`;
@@ -38,10 +32,12 @@ export default class DataExtractor {
     this.pages.push({ url: mainUrl, verified: false });
     this.phoneNumbers = [];
     this.socialMediaLinks = [];
-    console.log(`site number: ${STATISTICS.siteNumber++}`);
+    this.statisticsService = statisticsService;
   }
   async processWebsite() {
     try {
+      console.log(`start ${this.mainUrlWithoutProtocol} ${c++}`);
+      this.statisticsService.incrementTotalWebsites(1);
       await this.loadPageInTab();
       const otherWebsites = this.findOtherPagesInPageContent(
         await this.getPageRowHTML()
@@ -50,16 +46,20 @@ export default class DataExtractor {
       await this.searchForPhoneNumbers();
       await this.searchForSocialMediaLinks();
       this.removeDuplicates();
-      console.log(`start saving data using external API`);
-      const status = await this.saveDataToMainAPI();
-      console.log(status);
-      STATISTICS.sitesProcessed++;
-
-      if (this.pages.length < config.numberOfSubpages)
-        STATISTICS.sitesWithInsufficientPages.push(this.mainUrlWithoutProtocol);
-    } catch (e) {
-      console.log(e);
-      STATISTICS.failed.push(this.mainUrl);
+      this.statisticsService.incrementAddresses(0);
+      this.statisticsService.incrementPhone(this.phoneNumbers.length);
+      this.statisticsService.incrementSocialLinks(this.socialMediaLinks.length);
+      await this.saveDataToMainAPI();
+      this.statisticsService.incrementWebsitesSuccessfullyProcessed(1);
+    } catch (error: any) {
+      const errorIdentifier = (error?.message as string) || "Unmarked error";
+      this.statisticsService.registerFailedWebsite({
+        domain: this.mainUrlWithoutProtocol,
+        reason: errorIdentifier,
+      });
+      this.statisticsService.registerError(
+        errorIdentifier.replace(this.mainUrl, "")
+      );
     }
   }
   findOtherPagesInPageContent(pageHtml: string): string[] {
@@ -83,8 +83,9 @@ export default class DataExtractor {
   }
   async loadPageInTab(url?: string) {
     await this.browserTab.goto(url || this.mainUrl, {
-      waitUntil: "networkidle2",
-    }); // kinda document.ready (waits to be no more than 2 network connections for at least 500 ms.)
+      timeout: config.connectionTimeout,
+      waitUntil: "networkidle2", // kinda document.ready (waits to be no more than 2 network connections for at least 500 ms.)
+    });
   }
   async getPageRowHTML() {
     return this.browserTab.evaluate(() => {
